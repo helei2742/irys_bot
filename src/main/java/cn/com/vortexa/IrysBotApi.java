@@ -96,9 +96,7 @@ public class IrysBotApi {
             throw new IllegalArgumentException("twoCaptchaApiKey is blank");
         }
         AppendLogger logger = bot.getBotMethodInvokeContext().getLogger();
-        logger.debug("account[%s] start faucet...".formatted(
-                accountContext.getId()
-        ));
+        logger.debug("start faucet...");
 
         Map<String, String> headers = accountContext.buildHeader();
         headers.put(HeaderKey.REFERER, "https://irys.xyz/faucet");
@@ -106,18 +104,14 @@ public class IrysBotApi {
         headers.put(HeaderKey.CONTENT_TYPE, "application/json");
 
         try {
-            logger.debug("account[%s] getting faucet cf token...".formatted(
-                    accountContext.getId()
-            ));
+            logger.debug("getting faucet cf token...");
             String token = CaptchaResolver.cloudFlareResolve(
                     accountContext.getProxy(),
                     FAUCET_URL,
                     FAUCET_SITE_KEY,
                     twoCaptchaApiKey
             ).get();
-            logger.debug("account[%s] faucet cf token[%s]...".formatted(
-                    accountContext.getId(), token.substring(0, 18)
-            ));
+            logger.debug("faucet cf token[%s]...".formatted(token.substring(0, 18)));
 
             JSONObject jsonObject = RestApiClientFactory.getClient(accountContext.getProxy()).jsonRequest(
                     FAUCET_URL,
@@ -129,9 +123,7 @@ public class IrysBotApi {
                             "walletAddress", accountContext.getWallet().getEthAddress()
                     ))
             ).get();
-            logger.debug("account[%s] faucet finish, %s".formatted(
-                    accountContext.getId(), jsonObject
-            ));
+            logger.debug("faucet finish, %s".formatted(jsonObject));
         } catch (Exception e) {
             logger.error("faucet error", e.getCause() == null ? e : e.getCause());
         }
@@ -224,15 +216,13 @@ public class IrysBotApi {
         int score = RandomUtil.randomInt(minBase, maxBase) * multiply + base;
 
         if (!checkScoreCanCompleteAble(gameType, score)) {
-            logger.warn("account[%s] score[%s] cannot complete game[%s]...".formatted(
-                    fullAccountContext.getId(), score, gameType
-            ));
+            logger.warn("score[%s] cannot complete game[%s]...".formatted(score, gameType));
             return;
         }
 
         long dynamicWait = dynamicCalWait(gameType, score);
-        logger.debug("account[%s] wait %s(s) to complete game[%s], score[%s]，execute on: %s".formatted(
-                fullAccountContext.getId(), dynamicWait, sessionId, score, LocalDateTime.now().plusSeconds(dynamicWait)
+        logger.debug("wait %s(s) to complete game[%s], score[%s]，execute on: %s".formatted(
+                dynamicWait, sessionId, score, LocalDateTime.now().plusSeconds(dynamicWait)
         ));
         TimeUnit.SECONDS.sleep(dynamicWait);
 
@@ -243,7 +233,7 @@ public class IrysBotApi {
                 throwException = null;
                 break;
             } catch (Exception e) {
-                logger.warn("account[%s] complete game fail，retry...".formatted(fullAccountContext.getId()));
+                logger.warn("complete game fail，retry...");
                 throwException = e.getCause() == null ? e : e.getCause();
             }
         }
@@ -265,8 +255,8 @@ public class IrysBotApi {
             FullAccountContext fullAccountContext, double cost, String gameType
     ) throws BotInvokeException {
         AppendLogger logger = bot.getBotMethodInvokeContext().getLogger();
-        logger.debug("account[%s] send play game[%s] cost[%s] request".formatted(
-                fullAccountContext.getId(), gameType, cost
+        logger.debug("send play game[%s] cost[%s] request".formatted(
+                gameType, cost
         ));
 
         long timestamp = System.currentTimeMillis();
@@ -294,8 +284,7 @@ public class IrysBotApi {
                     3
             ).thenApply(JSONObject::parseObject).get();
             if (result != null && result.getBoolean("success")) {
-                logger.info("account[%s] start play game[%s], tsHash[%s] - sessionId[%s]".formatted(
-                        fullAccountContext.getId(),
+                logger.info("start play game[%s], tsHash[%s] - sessionId[%s]".formatted(
                         gameType,
                         result.getJSONObject("data").getString("transactionHash"),
                         result.getJSONObject("data").getString("sessionId")
@@ -322,8 +311,8 @@ public class IrysBotApi {
             FullAccountContext fullAccountContext, String gameType, String sessionId, int score
     ) throws BotInvokeException {
         AppendLogger logger = bot.getBotMethodInvokeContext().getLogger();
-        logger.debug("account[%s] send complete game[%s] request, score[%s]".formatted(
-                fullAccountContext.getId(), gameType, score
+        logger.debug("send complete game[%s] request, score[%s]".formatted(
+               gameType, score
         ));
 
         long timestamp = System.currentTimeMillis();
@@ -351,8 +340,7 @@ public class IrysBotApi {
                     3
             ).thenApply(JSONObject::parseObject).get();
             if (result != null && result.getBoolean("success")) {
-                logger.info("account[%s] complete game[%s], tsHash[%s] - sessionId[%s], message: %s".formatted(
-                        fullAccountContext.getId(),
+                logger.info("complete game[%s], tsHash[%s] - sessionId[%s], message: %s".formatted(
                         gameType,
                         result.getJSONObject("data").getString("transactionHash"),
                         result.getJSONObject("data").getString("sessionId"),
@@ -464,9 +452,9 @@ public class IrysBotApi {
         if (waitSecond > 60 * 10 && waitSecond < 60 * 20) {
             waitSecond = (long) (waitSecond * 0.7);
         } else if (waitSecond >= 60 * 20 && waitSecond < 60 * 30) {
-            waitSecond = (long) (waitSecond * 0.6);
+            waitSecond = (long) (waitSecond * 0.75);
         } else if (waitSecond >= 60 * 30) {
-            waitSecond = (long) (waitSecond * 0.5);
+            waitSecond = (long) (waitSecond * 0.8);
         }
 
         waitSecond += RandomUtil.randomInt(1, 10);

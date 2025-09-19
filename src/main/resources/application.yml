@@ -5,8 +5,8 @@ spring:
   datasource:
     jdbc-url: jdbc:mysql://localhost:3306/vortexa_script_node?allowMultiQueries=true
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: your db username
-    password: your db password
+    username: root
+    password: 123456
   quartz:
     job-store-type: jdbc
     properties:
@@ -35,7 +35,7 @@ vortexa:
     meta-info:
       bot-key: irys
       bot-version: v1.0.0
-      bot-name: irys_prod
+      bot-name: irys_dev
     runtime:
       thread-pool-size: 5
       virtual-thread: false

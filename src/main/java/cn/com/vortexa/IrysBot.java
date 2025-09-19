@@ -68,17 +68,13 @@ public class IrysBot extends AbstractVortexaBot {
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
             Web3Wallet wallet = fullAccountContext.getWallet();
             try {
-                logger.debug("account[%s] deposit game wallet balance[%s]..".formatted(
-                        fullAccountContext.getId(), amount
-                ));
+                logger.debug("deposit game wallet balance[%s]..".formatted(amount));
                 String txHash = botApi.depositGameBalance(wallet.getEthPrivateKey(), wallet.getEthAddress(), amount);
-                logger.info("account[%s] deposit game wallet balance[%s] success, txHash:[%s]".formatted(
-                        fullAccountContext.getId(), amount, txHash
+                logger.info("deposit game wallet balance[%s] success, txHash:[%s]".formatted(
+                        amount, txHash
                 ));
             } catch (Exception e) {
-                logger.error("account[%s] deposit game wallet balance[%s] error, ".formatted(
-                        fullAccountContext.getId(), amount
-                ), e.getCause() == null ? e : e.getCause());
+                logger.error("deposit game wallet balance[%s] error, ".formatted(amount), e.getCause() == null ? e : e.getCause());
             }
         });
     }
@@ -99,19 +95,13 @@ public class IrysBot extends AbstractVortexaBot {
 
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
             try {
-                logger.debug("account[%s] withdraw game wallet balance[%s]..".formatted(
-                        fullAccountContext.getId(), amount
-                ));
+                logger.debug("withdraw game wallet balance[%s]..".formatted(amount));
 
                 Web3Wallet wallet = fullAccountContext.getWallet();
                 String txHash = botApi.withdrawGameBalance(wallet.getEthPrivateKey(), wallet.getEthAddress(), amount);
-                logger.info("account[%s] withdraw game wallet balance[%s] success, txHash:[%s]".formatted(
-                        fullAccountContext.getId(), amount, txHash
-                ));
+                logger.info("withdraw game wallet balance[%s] success, txHash:[%s]".formatted(amount, txHash));
             } catch (Exception e) {
-                logger.error("account[%s] withdraw game wallet balance[%s] error, ".formatted(
-                        fullAccountContext.getId(), amount
-                ), e.getCause() == null ? e : e.getCause());
+                logger.error("withdraw game wallet balance[%s] error, ".formatted(amount), e.getCause() == null ? e : e.getCause());
             }
         });
     }
@@ -127,18 +117,12 @@ public class IrysBot extends AbstractVortexaBot {
         AppendLogger logger = getBotMethodInvokeContext().getLogger();
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
             try {
-                logger.debug("account[%s] query wallet irys balance..".formatted(
-                        fullAccountContext.getId()
-                ));
+                logger.debug("query wallet irys balance..");
 
                 BigDecimal balance = botApi.queryWalletBalance(fullAccountContext);
-                logger.info("account[%s] wallet irys balance[%s]".formatted(
-                        fullAccountContext.getId(), balance.doubleValue()
-                ));
+                logger.info("wallet irys balance[%s]".formatted(balance.doubleValue()));
             } catch (Exception e) {
-                logger.error("account[%s] query wallet irys balance error, ".formatted(
-                        fullAccountContext.getId()
-                ), e.getCause() == null ? e : e.getCause());
+                logger.error("query wallet irys balance error, ", e.getCause() == null ? e : e.getCause());
             }
         });
     }
@@ -154,17 +138,11 @@ public class IrysBot extends AbstractVortexaBot {
 
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
             try {
-                logger.debug("account[%s] query game wallet balance..".formatted(
-                        fullAccountContext.getId()
-                ));
+                logger.debug("query game wallet balance..");
                 BigDecimal balance = botApi.queryGameInnerWalletBalance(fullAccountContext);
-                logger.info("account[%s] game wallet balance[%s]".formatted(
-                        fullAccountContext.getId(), balance.doubleValue()
-                ));
+                logger.info("game wallet balance[%s]".formatted(balance.doubleValue()));
             } catch (Exception e) {
-                logger.error("account[%s] query game wallet balance error, ".formatted(
-                        fullAccountContext.getId()
-                ), e.getCause() == null ? e : e.getCause());
+                logger.error("query game wallet balance error, ", e.getCause() == null ? e : e.getCause());
             }
         });
     }
@@ -182,9 +160,7 @@ public class IrysBot extends AbstractVortexaBot {
             try {
                 botApi.playGame(fullAccountContext, IrysGameType.SNAKE, base, minBase, maxBase, multiply);
             } catch (Exception e) {
-                logger.error("account[%s] play snake game error, ".formatted(
-                        fullAccountContext.getId()
-                ), e.getCause() == null ? e : e.getCause());
+                logger.error("play snake game error, ", e.getCause() == null ? e : e.getCause());
             }
         });
     }
@@ -202,9 +178,7 @@ public class IrysBot extends AbstractVortexaBot {
             try {
                 botApi.playGame(fullAccountContext, IrysGameType.ASTEROIDS, base, minBase, maxBase, multiply);
             } catch (Exception e) {
-                logger.error("account[%s] play asteroids game error, ".formatted(
-                        fullAccountContext.getId()
-                ), e.getCause() == null ? e : e.getCause());
+                logger.error("play asteroids game error, ", e.getCause() == null ? e : e.getCause());
             }
         });
     }
@@ -222,9 +196,7 @@ public class IrysBot extends AbstractVortexaBot {
             try {
                 botApi.playGame(fullAccountContext, IrysGameType.HEX_SHOOTER, base, minBase, maxBase, multiply);
             } catch (Exception e) {
-                logger.error("account[%s] play hexshot game error, ".formatted(
-                        fullAccountContext.getId()
-                ), e.getCause() == null ? e : e.getCause());
+                logger.error("play hexshot game error, ", e.getCause() == null ? e : e.getCause());
             }
         });
     }
@@ -242,9 +214,7 @@ public class IrysBot extends AbstractVortexaBot {
             try {
                 botApi.playGame(fullAccountContext, IrysGameType.MISSILE_COMMAND, base, minBase, maxBase, multiply);
             } catch (Exception e) {
-                logger.error("account[%s] play missile game error, ".formatted(
-                        fullAccountContext.getId()
-                ), e.getCause() == null ? e : e.getCause());
+                logger.error("play missile game error, ", e.getCause() == null ? e : e.getCause());
             }
         });
     }
