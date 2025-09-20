@@ -1,12 +1,14 @@
-package cn.com.vortexa;
+package cn.com.vortexa.irys_onchain_bot;
 
 import cn.com.vortexa.bot_template.BotTemplateAutoConfig;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @ImportAutoConfiguration(BotTemplateAutoConfig.class)
+@MapperScan("cn.com.vortexa.irys_onchain_bot.mapper")
 public class IrysApp {
     public static void main(String[] args) {
         SpringApplication.run(IrysApp.class, args);

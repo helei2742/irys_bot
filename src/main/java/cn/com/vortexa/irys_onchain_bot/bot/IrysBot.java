@@ -1,6 +1,8 @@
-package cn.com.vortexa;
+package cn.com.vortexa.irys_onchain_bot.bot;
 
 
+import cn.com.vortexa.irys_onchain_bot.service.impl.IrysBotApi;
+import cn.com.vortexa.irys_onchain_bot.constants.IrysGameType;
 import cn.com.vortexa.account.entity.Web3Wallet;
 import cn.com.vortexa.base.util.log.AppendLogger;
 import cn.com.vortexa.bot_template.bot.AbstractVortexaBot;
@@ -10,6 +12,7 @@ import cn.com.vortexa.bot_template.bot.anno.VortexaBotAPI;
 import cn.com.vortexa.bot_template.bot.anno.VortexaBotCatalogueGroup;
 import cn.com.vortexa.bot_template.constants.VortexaBotApiSchedulerType;
 import cn.hutool.core.util.StrUtil;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -18,12 +21,12 @@ import java.math.BigDecimal;
  * @author helei
  * @since 2025-09-17
  */
+@Getter
 @Slf4j
 @VortexaBot(
         namespace = "irys",
         websiteUrl = "https://irys.xyz",
         catalogueGroup = {
-                @VortexaBotCatalogueGroup(name = "Wallet Opt", order = 1),
                 @VortexaBotCatalogueGroup(name = "Game", order = 2)
         }
 )
@@ -36,12 +39,12 @@ public class IrysBot extends AbstractVortexaBot {
         this.botApi = new IrysBotApi(this);
     }
 
-    @VortexaBotAPI(
-            name = "Faucet irys",
-            catalogueName = "Wallet Opt",
-            schedulerType = VortexaBotApiSchedulerType.INTERVAL,
-            catalogueOrder = 1
-    )
+//    @VortexaBotAPI(
+//            name = "Faucet irys",
+//            catalogueName = "Wallet Opt",
+//            schedulerType = VortexaBotApiSchedulerType.INTERVAL,
+//            catalogueOrder = 1
+//    )
     public void faucet() {
         if (StrUtil.isBlank(botApi.getTwoCaptchaApiKey())) {
             throw new IllegalArgumentException("twoCaptchaApiKey is blank");
@@ -52,12 +55,12 @@ public class IrysBot extends AbstractVortexaBot {
         });
     }
 
-    @VortexaBotAPI(
-            name = "Deposit game balance",
-            catalogueName = "Wallet Opt",
-            schedulerType = VortexaBotApiSchedulerType.NONE,
-            catalogueOrder = 2
-    )
+//    @VortexaBotAPI(
+//            name = "Deposit game balance",
+//            catalogueName = "Wallet Opt",
+//            schedulerType = VortexaBotApiSchedulerType.NONE,
+//            catalogueOrder = 2
+//    )
     public void depositGameBalance(Double amount) {
         AppendLogger logger = getBotMethodInvokeContext().getLogger();
 
@@ -79,12 +82,12 @@ public class IrysBot extends AbstractVortexaBot {
         });
     }
 
-    @VortexaBotAPI(
-            name = "Withdraw game balance",
-            catalogueName = "Wallet Opt",
-            schedulerType = VortexaBotApiSchedulerType.NONE,
-            catalogueOrder = 3
-    )
+//    @VortexaBotAPI(
+//            name = "Withdraw game balance",
+//            catalogueName = "Wallet Opt",
+//            schedulerType = VortexaBotApiSchedulerType.NONE,
+//            catalogueOrder = 3
+//    )
     public void withdrawGameBalance(Double amount) {
         AppendLogger logger = getBotMethodInvokeContext().getLogger();
 
@@ -106,13 +109,13 @@ public class IrysBot extends AbstractVortexaBot {
         });
     }
 
-
-    @VortexaBotAPI(
-            name = "Query irys balance",
-            catalogueName = "Wallet Opt",
-            schedulerType = VortexaBotApiSchedulerType.NONE,
-            catalogueOrder = 4
-    )
+//
+//    @VortexaBotAPI(
+//            name = "Query irys balance",
+//            catalogueName = "Wallet Opt",
+//            schedulerType = VortexaBotApiSchedulerType.NONE,
+//            catalogueOrder = 4
+//    )
     public void walletIrysBalanceQuery() {
         AppendLogger logger = getBotMethodInvokeContext().getLogger();
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
@@ -127,12 +130,12 @@ public class IrysBot extends AbstractVortexaBot {
         });
     }
 
-    @VortexaBotAPI(
-            name = "Query game wallet balance",
-            catalogueName = "Wallet Opt",
-            schedulerType = VortexaBotApiSchedulerType.NONE,
-            catalogueOrder = 5
-    )
+//    @VortexaBotAPI(
+//            name = "Query game wallet balance",
+//            catalogueName = "Wallet Opt",
+//            schedulerType = VortexaBotApiSchedulerType.NONE,
+//            catalogueOrder = 5
+//    )
     public void gameWalletBalanceQuery() {
         AppendLogger logger = getBotMethodInvokeContext().getLogger();
 

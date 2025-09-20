@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.com.vortexa.irys_onchain_bot.mapper.IrysExecuteRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.com.vortexa.irys_onchain_bot.entity.IrysExecuteRecord">
+        <id column="id" property="id" />
+        <result column="address" property="address" />
+        <result column="status" property="status" />
+        <result column="execute_time" property="executeTime" />
+        <result column="execute_params" property="executeParams" />
+        <result column="error_msg" property="errorMsg" />
+        <result column="create_datetime" property="createDatetime" />
+        <result column="update_datetime" property="updateDatetime" />
+    </resultMap>
+
+</mapper>

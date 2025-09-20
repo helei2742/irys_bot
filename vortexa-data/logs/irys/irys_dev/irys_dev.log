@@ -1,0 +1,64 @@
+2025-09-18 09:17:28.274 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Game][Snake Game] - account[1][No proxy] - [90maccount[1] send play game[snake] cost[0.001] request[0m
+2025-09-18 09:17:54.599 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Game][Snake Game] - account[1][No proxy] - [32maccount[1] start play game[snake], tsHash[0xc207c2f02d2cbc1a0a0d5449d63ed473fb9acd4e8fc98239883bf52e6c823423] - sessionId[game_1758158248274_zazlp577p][0m
+2025-09-18 09:17:54.599 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Game][Snake Game] - account[1][No proxy] - [90maccount[1] wait 115(s) to complete game[game_1758158248274_zazlp577p], score[990]，execute on: 2025-09-18T09:19:49.599504[0m
+2025-09-18 09:19:49.588 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Game][Snake Game] - account[1][No proxy] - [90maccount[1] send complete game[snake] request, score[990][0m
+2025-09-18 09:20:07.502 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Game][Snake Game] - account[1][No proxy] - [32maccount[1] complete game[snake], tsHash[0x888a262e04fd5b7d5f22cc853cc401c4db8907e5cef8a278b6640cb68e7577b6] - sessionId[game_1758158248274_zazlp577p], message: Game completed! Earned 0.004 IRYS[0m
+2025-09-18 09:24:38.616 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Game][Snake Game] - account[1][No proxy] - [90msend play game[snake] cost[0.001] request[0m
+2025-09-18 09:25:05.092 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Game][Snake Game] - account[1][No proxy] - [32mstart play game[snake], tsHash[0x41ee42c36c3c7483a942c5db227eaabf1ccd521df16073c2d29e32ec02450aba] - sessionId[game_1758158678637_nm19v1uks][0m
+2025-09-18 09:25:05.093 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Game][Snake Game] - account[1][No proxy] - [90mwait 271(s) to complete game[game_1758158678637_nm19v1uks], score[2430]，execute on: 2025-09-18T09:29:36.093140[0m
+2025-09-18 09:26:39.238 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Wallet Opt][Deposit game balance] - account[1][No proxy] - [90mdeposit game wallet balance[0.1]..[0m
+2025-09-18 09:26:42.205 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Wallet Opt][Deposit game balance] - account[1][No proxy] - [32mdeposit game wallet balance[0.1] success, txHash:[0x601dc2d262f85e8c45dd9448b19edab95b1ce1f176f6c12793a6f64ba04721c9][0m
+2025-09-18 09:28:00.044 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Wallet Opt][Deposit game balance] - account[1][No proxy] - [90mdeposit game wallet balance[0.1]..[0m
+2025-09-18 09:28:01.991 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Wallet Opt][Deposit game balance] - account[1][No proxy] - [32mdeposit game wallet balance[0.1] success, txHash:[0xd018edf9727b0e73c316eef2ff6e0edd15da5bf5234765f5bc41fdedfbe13535][0m
+2025-09-18 14:52:41.553 INFO  - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Game][Snake Game] - account[1][No proxy] - [90msend play game[snake] cost[0.001] request[0m
+2025-09-18 14:53:13.915 ERROR - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Game][Snake Game] - account[1][No proxy] - [31mplay snake game error, [0m
+java.util.concurrent.ExecutionException: cn.com.vortexa.common.exception.NetworkException: 请求重试次数超过限制[3], 请求[https://play.irys.xyz/api/game/start]失败, code[500]-body[{"error":"Internal server error. Please try again."}]
+	at java.base/java.util.concurrent.CompletableFuture.reportGet(CompletableFuture.java:396) ~[na:na]
+	at java.base/java.util.concurrent.CompletableFuture.get(CompletableFuture.java:2073) ~[na:na]
+	at cn.com.vortexa.irys_onchain_bot.service.impl.IrysBotApi.startIrysGame(IrysBotApi.java:285) ~[classes/:na]
+	at cn.com.vortexa.irys_onchain_bot.service.impl.IrysBotApi.playGame(IrysBotApi.java:215) ~[classes/:na]
+	at cn.com.vortexa.bot.IrysBot.lambda$snakeGame$5(IrysBot.java:161) ~[classes/:na]
+	at cn.com.vortexa.bot_template.bot.AbstractVortexaBot.execute(AbstractVortexaBot.java:206) ~[vortexa-bot-template-1.0-SNAPSHOT.jar:na]
+	at cn.com.vortexa.bot_template.bot.AbstractVortexaBot.syncExecuteScanner(AbstractVortexaBot.java:180) ~[vortexa-bot-template-1.0-SNAPSHOT.jar:na]
+	at cn.com.vortexa.bot_template.bot.AbstractVortexaBot.forEachAccountContext(AbstractVortexaBot.java:105) ~[vortexa-bot-template-1.0-SNAPSHOT.jar:na]
+	at cn.com.vortexa.bot.IrysBot.snakeGame(IrysBot.java:159) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at cn.com.vortexa.bot_template.service.impl.BotTemplateBaseServiceImpl.lambda$directInvokeJobMethod$4(BotTemplateBaseServiceImpl.java:318) ~[vortexa-bot-template-1.0-SNAPSHOT.jar:na]
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run$$$capture(CompletableFuture.java:1768) ~[na:na]
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[na:na]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+Caused by: cn.com.vortexa.common.exception.NetworkException: 请求重试次数超过限制[3], 请求[https://play.irys.xyz/api/game/start]失败, code[500]-body[{"error":"Internal server error. Please try again."}]
+	at cn.com.vortexa.common.util.http.RestApiClient.normalRequest(RestApiClient.java:435) ~[common-1.0-SNAPSHOT.jar:na]
+	at cn.com.vortexa.common.util.http.RestApiClient.lambda$request$3(RestApiClient.java:204) ~[common-1.0-SNAPSHOT.jar:na]
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run$$$capture(CompletableFuture.java:1768) ~[na:na]
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPerTaskExecutor$TaskRunner.run(ThreadPerTaskExecutor.java:314) ~[na:na]
+	... 1 common frames omitted
+Caused by: cn.com.vortexa.common.exception.NetworkException: 请求[https://play.irys.xyz/api/game/start]失败, code[500]-body[{"error":"Internal server error. Please try again."}]
+	at cn.com.vortexa.common.util.http.RestApiClient.normalRequest(RestApiClient.java:420) ~[common-1.0-SNAPSHOT.jar:na]
+	... 5 common frames omitted
+2025-09-19 14:28:05.608 ERROR - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Wallet Opt][Withdraw game balance] - [31mscan account context [1_100] known error[0m
+java.lang.NullPointerException: Cannot invoke "cn.com.vortexa.bot_template.dto.OperateParams.getAsyncAccountScan()" because "operateParams" is null
+	at cn.com.vortexa.bot_template.bot.AbstractVortexaBot.forEachAccountContext(AbstractVortexaBot.java:102) ~[vortexa-bot-template-1.0-SNAPSHOT.jar:na]
+	at cn.com.vortexa.bot.IrysBot.withdrawGameBalance(IrysBot.java:98) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at cn.com.vortexa.bot_template.service.impl.BotTemplateBaseServiceImpl.lambda$directInvokeJobMethod$4(BotTemplateBaseServiceImpl.java:318) ~[vortexa-bot-template-1.0-SNAPSHOT.jar:na]
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[na:na]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+2025-09-19 15:01:52.827 ERROR - [36mBot[irys-v1.0.0]-[irys_dev][0m  - method[irys][Wallet Opt][Withdraw game balance] - [31mscan account context [1_100] known error[0m
+java.lang.NullPointerException: Cannot invoke "cn.com.vortexa.bot_template.dto.OperateParams.getAsyncAccountScan()" because "operateParams" is null
+	at cn.com.vortexa.bot_template.bot.AbstractVortexaBot.forEachAccountContext(AbstractVortexaBot.java:102) ~[vortexa-bot-template-1.0-SNAPSHOT.jar:na]
+	at cn.com.vortexa.bot.IrysBot.withdrawGameBalance(IrysBot.java:98) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at cn.com.vortexa.bot_template.service.impl.BotTemplateBaseServiceImpl.lambda$directInvokeJobMethod$4(BotTemplateBaseServiceImpl.java:318) ~[vortexa-bot-template-1.0-SNAPSHOT.jar:na]
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[na:na]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]

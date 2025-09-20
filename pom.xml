@@ -47,6 +47,24 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.web3j</groupId>
+                <artifactId>web3j-maven-plugin</artifactId>
+                <version>4.9.8</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-sources</goal>
+                        </goals>
+                        <configuration>
+                            <soliditySourceFiles>${project.basedir}/src/main/resources/solidity</soliditySourceFiles>
+                            <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
+                            <packageName>com.example.contract</packageName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

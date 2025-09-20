@@ -1,20 +1,20 @@
-package cn.com.vortexa;
+package cn.com.vortexa.irys_onchain_bot.service.impl;
 
+import cn.com.vortexa.account.entity.ProxyInfo;
+import cn.com.vortexa.irys_onchain_bot.constants.IrysGameType;
 import cn.com.vortexa.base.constants.HeaderKey;
 import cn.com.vortexa.base.util.log.AppendLogger;
+import cn.com.vortexa.irys_onchain_bot.bot.IrysBot;
 import cn.com.vortexa.bot_template.bot.dto.FullAccountContext;
 import cn.com.vortexa.bot_template.exception.BotInvokeException;
 import cn.com.vortexa.captcha.CaptchaResolver;
-import cn.com.vortexa.common.constants.ChainType;
 import cn.com.vortexa.common.constants.HttpMethod;
-import cn.com.vortexa.common.constants.NetType;
 import cn.com.vortexa.common.util.CastUtil;
 import cn.com.vortexa.common.util.http.RestApiClientFactory;
 import cn.com.vortexa.web3.EthWalletUtil;
 import cn.com.vortexa.web3.constants.Web3jFunctionType;
 import cn.com.vortexa.web3.dto.SCInvokeParams;
 import cn.com.vortexa.web3.dto.WalletInfo;
-import cn.com.vortexa.web3.dto.Web3ChainInfo;
 import cn.com.vortexa.web3.exception.ABIInvokeException;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.RandomUtil;
@@ -27,8 +27,11 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+
+import static cn.com.vortexa.irys_onchain_bot.constants.IrysConstants.*;
 
 /**
  * @author helei
@@ -37,43 +40,12 @@ import java.util.concurrent.TimeUnit;
 public class IrysBotApi {
     private static final String GAME_WALLET_BALANCE_KEY = "game_wallet_balance";
     private static final String WALLET_BALANCE_KEY = "wallet_balance";
-
     private static final String FAUCET_URL = "https://irys.xyz/api/faucet";
     private static final String FAUCET_SITE_KEY = "0x4AAAAAAA6vnrvBCtS4FAl-";
     private static final String BASE_URL = "https://play.irys.xyz/api";
-    private static final String IRYS_GAME_START_SIGN_MESSAGE = """
-            I authorize payment of %s IRYS to play a game on Irys Arcade.
-               \s
-            Player: %s
-            Amount: %s IRYS
-            Timestamp: %s
-            
-            This signature confirms I own this wallet and authorize the payment.
-            """;
-    private static final String IRYS_GAME_COMPLETE_SIGN_MESSAGE = """
-            I completed a %s game on Irys Arcade.
-               \s
-            Player: %s
-            Game: %s
-            Score: %s
-            Session: %s
-            Timestamp: %s
-            
-            This signature confirms I own this wallet and completed this game.
-            """;
-
     private static final String RANDOM_STR_TEM = "1234567890abcdefghijklmnopqrstuvwxyz";
     private static final String BALANCE_DEPOSIT_ADDRESS = "0xBC41F2B6BdFCB3D87c3d5E8b37fD02C56B69ccaC";
-    private static final Web3ChainInfo IRYS_CHAIN_INFO = Web3ChainInfo
-            .builder()
-            .name("Irys Testnet")
-            .rpcUrls(List.of("https://testnet-rpc.irys.xyz/v1/execution-rpc"))
-            .chainId(1270)
-            .chainType(ChainType.EVM)
-            .netType(NetType.Test_net)
-            .originTokenSymbol("IRYS")
-            .blockExploreUrl("https://explorer.irys.xyz")
-            .build();
+
 
     private final IrysBot bot;
     @Getter
@@ -212,7 +184,7 @@ public class IrysBotApi {
     ) throws BotInvokeException, InterruptedException {
         AppendLogger logger = bot.getBotMethodInvokeContext().getLogger();
 
-        String sessionId = startIrysGame(fullAccountContext, getGameCost(gameType), gameType);
+        String sessionId = startIrysGame(fullAccountContext, gameType, getGameCost(gameType));
         int score = RandomUtil.randomInt(minBase, maxBase) * multiply + base;
 
         if (!checkScoreCanCompleteAble(gameType, score)) {
@@ -242,6 +214,44 @@ public class IrysBotApi {
         }
     }
 
+    public CompletableFuture<JSONObject> startIrysGame(
+            ProxyInfo proxyInfo,
+            Map<String, String> header,
+            String ethAddress,
+            String message,
+            String signature,
+            String sessionId,
+            long timestamp,
+            String gameType,
+            double cost
+    ) {
+
+        JSONObject body = new JSONObject(Map.of(
+                "playerAddress", ethAddress,
+                "gameCost", cost,
+                "signature", signature,
+                "message", message,
+                "timestamp", timestamp,
+                "sessionId", sessionId,
+                "gameType", gameType
+        ));
+
+        return RestApiClientFactory.getClient(proxyInfo).request(
+                BASE_URL + "/game/start",
+                HttpMethod.POST,
+                header,
+                null,
+                body,
+                3
+        ).thenApply(JSONObject::parseObject).thenApply(result -> {
+            if (result != null && result.getBoolean("success")) {
+                return result.getJSONObject("data");
+            } else {
+                throw new RuntimeException("start error, " + result);
+            }
+        });
+    }
+
 
     /**
      * 开始游戏
@@ -252,7 +262,9 @@ public class IrysBotApi {
      * @return CompletableFuture<JSONObject>
      */
     private String startIrysGame(
-            FullAccountContext fullAccountContext, double cost, String gameType
+            FullAccountContext fullAccountContext,
+            String gameType,
+            double cost
     ) throws BotInvokeException {
         AppendLogger logger = bot.getBotMethodInvokeContext().getLogger();
         logger.debug("send play game[%s] cost[%s] request".formatted(
@@ -262,40 +274,65 @@ public class IrysBotApi {
         long timestamp = System.currentTimeMillis();
         String ethAddress = fullAccountContext.getWallet().getEthAddress();
         String message = generateStartGameSignMessage(ethAddress, cost, timestamp);
-
-        JSONObject body = new JSONObject(Map.of(
-                "playerAddress", ethAddress,
-                "gameCost", cost,
-                "signature", EthWalletUtil.signatureMessage2String(
-                        fullAccountContext.getWallet().getEthPrivateKey(), message
-                ),
-                "message", message,
-                "timestamp", timestamp,
-                "sessionId", generateIrysGameSessionId(timestamp),
-                "gameType", gameType
-        ));
         try {
-            JSONObject result = RestApiClientFactory.getClient(fullAccountContext.getProxy()).request(
-                    BASE_URL + "/game/start",
-                    HttpMethod.POST,
+            JSONObject data = startIrysGame(
+                    fullAccountContext.getProxy(),
                     generateHeader(fullAccountContext, convertHeaderGameType(gameType)),
-                    null,
-                    body,
-                    3
-            ).thenApply(JSONObject::parseObject).get();
-            if (result != null && result.getBoolean("success")) {
-                logger.info("start play game[%s], tsHash[%s] - sessionId[%s]".formatted(
-                        gameType,
-                        result.getJSONObject("data").getString("transactionHash"),
-                        result.getJSONObject("data").getString("sessionId")
-                ));
-                return result.getJSONObject("data").getString("sessionId");
-            } else {
-                throw new BotInvokeException("start error, " + result);
-            }
-        } catch (InterruptedException | ExecutionException e) {
+                    ethAddress,
+                    message,
+                    EthWalletUtil.signatureMessage2String(
+                            fullAccountContext.getWallet().getEthPrivateKey(), message
+                    ),
+                    generateIrysGameSessionId(timestamp),
+                    timestamp,
+                    gameType,
+                    cost
+            ).get();
+            logger.info("start play game[%s], tsHash[%s] - sessionId[%s]".formatted(
+                    gameType,
+                    data.getString("transactionHash"),
+                    data.getString("sessionId")
+            ));
+            return data.getString("sessionId");
+        } catch (Exception e) {
             throw new BotInvokeException(e);
         }
+    }
+
+    public CompletableFuture<JSONObject> completeIrysGame(
+            ProxyInfo proxyInfo,
+            Map<String, String> header,
+            String ethAddress,
+            String message,
+            String signature,
+            String sessionId,
+            long timestamp,
+            String gameType,
+            Integer score
+    ) {
+        JSONObject body = new JSONObject(Map.of(
+                "gameType", gameType,
+                "message", message,
+                "playerAddress", ethAddress,
+                "score", score,
+                "sessionId", sessionId,
+                "signature", signature,
+                "timestamp", timestamp
+        ));
+        return RestApiClientFactory.getClient(proxyInfo).request(
+                BASE_URL + "/game/complete",
+                HttpMethod.POST,
+                header,
+                null,
+                body,
+                3
+        ).thenApply(JSONObject::parseObject).thenApply(result -> {
+            if (result != null && result.getBoolean("success")) {
+                return result.getJSONObject("data");
+            } else {
+                throw new RuntimeException("start error, " + result);
+            }
+        });
     }
 
     /**
@@ -312,44 +349,32 @@ public class IrysBotApi {
     ) throws BotInvokeException {
         AppendLogger logger = bot.getBotMethodInvokeContext().getLogger();
         logger.debug("send complete game[%s] request, score[%s]".formatted(
-               gameType, score
+                gameType, score
         ));
-
         long timestamp = System.currentTimeMillis();
         String ethAddress = fullAccountContext.getWallet().getEthAddress();
         String message = generateCompleteGameMessage(gameType, ethAddress, score, sessionId, timestamp);
-        JSONObject body = new JSONObject(Map.of(
-                "gameType", gameType,
-                "message", message,
-                "playerAddress", ethAddress,
-                "score", score,
-                "sessionId", sessionId,
-                "signature", EthWalletUtil.signatureMessage2String(
-                        fullAccountContext.getWallet().getEthPrivateKey(), message
-                ),
-                "timestamp", timestamp
-        ));
-
         try {
-            JSONObject result = RestApiClientFactory.getClient(fullAccountContext.getProxy()).request(
-                    BASE_URL + "/game/complete",
-                    HttpMethod.POST,
+            JSONObject data = completeIrysGame(
+                    fullAccountContext.getProxy(),
                     generateHeader(fullAccountContext, convertHeaderGameType(gameType)),
-                    null,
-                    body,
-                    3
-            ).thenApply(JSONObject::parseObject).get();
-            if (result != null && result.getBoolean("success")) {
-                logger.info("complete game[%s], tsHash[%s] - sessionId[%s], message: %s".formatted(
-                        gameType,
-                        result.getJSONObject("data").getString("transactionHash"),
-                        result.getJSONObject("data").getString("sessionId"),
-                        result.getString("message")
-                ));
-            } else {
-                throw new BotInvokeException("start error, " + result);
-            }
-        } catch (InterruptedException | ExecutionException e) {
+                    ethAddress,
+                    message,
+                    EthWalletUtil.signatureMessage2String(
+                            fullAccountContext.getWallet().getEthPrivateKey(), message
+                    ),
+                    sessionId,
+                    timestamp,
+                    gameType,
+                    score
+            ).get();
+            logger.info("complete game[%s], tsHash[%s] - sessionId[%s], message: %s".formatted(
+                    gameType,
+                    data.getString("transactionHash"),
+                    data.getString("sessionId"),
+                    data.getString("message")
+            ));
+        } catch (Exception e) {
             throw new BotInvokeException(e);
         }
     }
@@ -403,15 +428,8 @@ public class IrysBotApi {
         );
     }
 
-    private static Object generateIrysGameSessionId(long timestamp) {
-        return "game_%s_%s".formatted(timestamp, RandomUtil.randomString(RANDOM_STR_TEM, 9));
-    }
 
-    private static String generateStartGameSignMessage(String evmAddress, Double count, long timestamp) {
-        return IRYS_GAME_START_SIGN_MESSAGE.formatted(count, evmAddress, count, timestamp);
-    }
-
-    private static String convertHeaderGameType(String gameType) {
+    public static String convertHeaderGameType(String gameType) {
         return switch (gameType) {
             case IrysGameType.SNAKE -> "snake";
             case IrysGameType.MISSILE_COMMAND -> "missile";
@@ -431,7 +449,7 @@ public class IrysBotApi {
         };
     }
 
-    private static double getGameCost(String gameType) {
+    public static double getGameCost(String gameType) {
         return switch (gameType) {
             case IrysGameType.SNAKE -> 0.001;
             case IrysGameType.MISSILE_COMMAND -> 0.001;
@@ -441,12 +459,17 @@ public class IrysBotApi {
         };
     }
 
-    private static long dynamicCalWait(String gameType, int score) {
+    public static String generateIrysGameSessionId(long timestamp) {
+        return "game_%s_%s".formatted(timestamp, RandomUtil.randomString(RANDOM_STR_TEM, 9));
+    }
+
+
+    public static long dynamicCalWait(String gameType, int score) {
         long waitSecond = switch (gameType) {
-            case IrysGameType.SNAKE -> calculatePlayTime(score, 10,1.1);
-            case IrysGameType.MISSILE_COMMAND -> calculatePlayTime(score, 100,0.5);
-            case IrysGameType.ASTEROIDS -> calculatePlayTime(score, 100,0.6);
-            case IrysGameType.HEX_SHOOTER -> calculatePlayTime(score, 100,0.7);
+            case IrysGameType.SNAKE -> calculatePlayTime(score, 10, 1.1);
+            case IrysGameType.MISSILE_COMMAND -> calculatePlayTime(score, 100, 0.5);
+            case IrysGameType.ASTEROIDS -> calculatePlayTime(score, 100, 0.6);
+            case IrysGameType.HEX_SHOOTER -> calculatePlayTime(score, 100, 0.7);
             default -> throw new IllegalArgumentException("unknown gameType: " + gameType);
         };
         if (waitSecond > 60 * 10 && waitSecond < 60 * 20) {
@@ -476,7 +499,7 @@ public class IrysBotApi {
     }
 
 
-    private static String generateCompleteGameMessage(
+    public static String generateCompleteGameMessage(
             String gameType,
             String evmAddress,
             int score,
@@ -493,6 +516,10 @@ public class IrysBotApi {
         );
     }
 
+    public static String generateStartGameSignMessage(String evmAddress, Double count, long timestamp) {
+        return IRYS_GAME_START_SIGN_MESSAGE.formatted(count, evmAddress, count, timestamp);
+    }
+
     private static Map<String, String> generateHeader(
             FullAccountContext fullAccountContext, String refererAppend
     ) {
@@ -502,5 +529,4 @@ public class IrysBotApi {
         headers.put(HeaderKey.CONTENT_TYPE, "application/json");
         return headers;
     }
-
 }
