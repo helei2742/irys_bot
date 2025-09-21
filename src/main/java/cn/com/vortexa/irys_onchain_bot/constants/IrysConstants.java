@@ -14,6 +14,8 @@ import java.util.List;
 public class IrysConstants {
     public static final String IRYS_EXECUTE_CONTRACT_ADDRESS = "irys-execute-contract-address";
     public static final String IRYS_EXECUTE_CONTRACT_ABI = "irys-execute-contract-abi";
+    public static final String IRYS_NODE_CONTRACT_ADDRESS = "irys-node-contract-address";
+    public static final String IRYS_NODE_CONTRACT_ABI = "irys-node-contract-abi";
 
     public static final Web3ChainInfo IRYS_CHAIN_INFO = Web3ChainInfo
             .builder()

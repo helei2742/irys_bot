@@ -51,12 +51,6 @@ public class IrysCompleteGameJob implements Job {
                 }
 
                 try {
-                    if (record.getStatus() != IrysExecuteIntentStatus.RUNNING) {
-                        log.warn("Ineligible complete game status[{}] from address[{}], id[{}], canceled",
-                                record.getStatus(), params.getAddress(), id
-                        );
-                        update.status(IrysExecuteIntentStatus.CANCELLED);
-                    }
 
                     // 提交完成游戏
                     JSONObject data = irysService.completePlayOnChainGame(params).get();
@@ -65,7 +59,7 @@ public class IrysCompleteGameJob implements Job {
                     update.result(JSONObject.toJSONString(data));
 
                     // 提交上链的奖励
-                    String txHash = irysOnChainService.commitExecuteIntent(id);
+                    String txHash = irysOnChainService.completeExecuteIntent(id, params.getAddress());
                     log.info("address[{}]-intent[{}] commit on chain success, txHash[{}]", params.getAddress(), id, txHash);
                 } catch (OnChainException e) {
                     log.error("commit execute intent failed", e);

@@ -1,9 +1,10 @@
-package cn.com.vortexa.irys_onchain_bot.onchain;
+package cn.com.vortexa.irys_onchain_bot.onchain.node;
 
 
 import cn.com.vortexa.bot_template.bot.VortexaBotContext;
 import cn.com.vortexa.common.util.CastUtil;
 import cn.com.vortexa.irys_onchain_bot.constants.IrysConstants;
+import cn.com.vortexa.irys_onchain_bot.onchain.DynamicGasProvider;
 import cn.com.vortexa.irys_onchain_bot.service.IrysOnChainService;
 import cn.com.vortexa.web3.EthWalletUtil;
 import cn.hutool.core.util.StrUtil;
@@ -20,8 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static cn.com.vortexa.irys_onchain_bot.constants.IrysConstants.IRYS_EXECUTE_CONTRACT_ABI;
-import static cn.com.vortexa.irys_onchain_bot.constants.IrysConstants.IRYS_EXECUTE_CONTRACT_ADDRESS;
+import static cn.com.vortexa.irys_onchain_bot.constants.IrysConstants.*;
+import static cn.com.vortexa.irys_onchain_bot.constants.IrysCustomConfigKey.DEPLOY_PRIVATE_KEY;
 
 /**
  * @author helei
@@ -29,9 +30,7 @@ import static cn.com.vortexa.irys_onchain_bot.constants.IrysConstants.IRYS_EXECU
  */
 @Slf4j
 @Component
-public class ExecutorGuardedIntentFactoryBean extends AbstractFactoryBean<ExecutorGuardedIntent> {
-
-    private static final String DEPLOY_PRIVATE_KEY = "deployer-private-key";
+public class NodeRegistryFactoryBean extends AbstractFactoryBean<NodeRegistry> {
 
     @Autowired
     private VortexaBotContext botContext;
@@ -41,7 +40,7 @@ public class ExecutorGuardedIntentFactoryBean extends AbstractFactoryBean<Execut
 
     @Override
     public Class<?> getObjectType() {
-        return ExecutorGuardedIntent.class;
+        return NodeRegistry.class;
     }
 
     @Override
@@ -51,7 +50,7 @@ public class ExecutorGuardedIntentFactoryBean extends AbstractFactoryBean<Execut
 
     @NotNull
     @Override
-    protected ExecutorGuardedIntent createInstance() throws Exception {
+    protected NodeRegistry createInstance() throws Exception {
         String privateKey = CastUtil.autoCast(botContext.getCustomConfig().getKeyValues()
                 .get(DEPLOY_PRIVATE_KEY));
 
@@ -61,43 +60,42 @@ public class ExecutorGuardedIntentFactoryBean extends AbstractFactoryBean<Execut
 
         String contractAddress = readFileContractAddress();
         if (StrUtil.isBlank(contractAddress)) {
-            log.warn("executor-guarded-intent-address not found, try to deploy new one...");
-            contractAddress = irysOnChainService.deployExecutorGuardedIntentContract(privateKey);
+            log.warn("node-registry-address not found, try to deploy new one...");
+            contractAddress = irysOnChainService.deployNodeRegistryContract(privateKey);
             if (StrUtil.isBlank(contractAddress)) {
-                throw new RuntimeException("deploy executor-guarded-intent-address failed");
+                throw new RuntimeException("deploy node-registry-address failed");
             } else {
                 saveContractAddress(contractAddress);
-                log.info("deploy executor-guarded-intent-address successful, address: {}", contractAddress);
+                log.info("deploy node-registry-address successful, address: {}", contractAddress);
             }
         }
-        botContext.getCustomConfig().getKeyValues().put(IRYS_EXECUTE_CONTRACT_ADDRESS, contractAddress);
-        botContext.getCustomConfig().getKeyValues().put(IRYS_EXECUTE_CONTRACT_ABI, loadAbiForFile());
-
+        botContext.getCustomConfig().getKeyValues().put(IRYS_NODE_CONTRACT_ADDRESS, contractAddress);
+        botContext.getCustomConfig().getKeyValues().put(IRYS_NODE_CONTRACT_ABI, loadAbiForFile());
 
         Web3j web3j = EthWalletUtil.getRpcWeb3j(IrysConstants.IRYS_CHAIN_INFO.getRpcUrl());
         Credentials credentials = Credentials.create(privateKey);
         DynamicGasProvider gasProvider = new DynamicGasProvider(web3j, credentials.getAddress());
-        ExecutorGuardedIntent load = ExecutorGuardedIntent.load(
+        NodeRegistry load = NodeRegistry.load(
                 contractAddress,
                 web3j,
                 credentials,
                 gasProvider
         );
-        log.info("load executor-guarded-intent-address successful, address: {}", contractAddress);
+        log.info("load node-registry-address successful, address: {}", contractAddress);
         return load;
     }
 
     private String loadAbiForFile() throws IOException {
-        Path path = Paths.get(System.getProperty("user.dir"), "executor-guarded-intent.abi");
+        Path path = Paths.get(System.getProperty("user.dir"), "node-registry.abi");
         if (Files.notExists(path)) {
-            throw new RuntimeException("executor-guarded-intent.abi not found");
+            throw new RuntimeException("node-registry.abi not found");
         }
 
         return Files.readString(path);
     }
 
     private void saveContractAddress(String contractAddress) {
-        Path path = Paths.get(System.getProperty("user.dir"), "executor-guarded-intent-address.txt");
+        Path path = Paths.get(System.getProperty("user.dir"), "node-registry-address.txt");
 
         if (Files.notExists(path.getParent())) {
             try {
@@ -114,7 +112,7 @@ public class ExecutorGuardedIntentFactoryBean extends AbstractFactoryBean<Execut
     }
 
     private String readFileContractAddress() {
-        Path path = Paths.get(System.getProperty("user.dir"), "executor-guarded-intent-address.txt");
+        Path path = Paths.get(System.getProperty("user.dir"), "node-registry-address.txt");
         if (Files.exists(path)) {
             try (BufferedReader br = new BufferedReader(new FileReader(path.toFile()))) {
                 return br.readLine();

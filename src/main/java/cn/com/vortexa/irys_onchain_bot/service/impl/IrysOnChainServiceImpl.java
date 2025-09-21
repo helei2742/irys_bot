@@ -4,7 +4,8 @@ package cn.com.vortexa.irys_onchain_bot.service.impl;
 import cn.com.vortexa.irys_onchain_bot.constants.IrysConstants;
 import cn.com.vortexa.irys_onchain_bot.exception.OnChainException;
 import cn.com.vortexa.irys_onchain_bot.onchain.DynamicGasProvider;
-import cn.com.vortexa.irys_onchain_bot.onchain.ExecutorGuardedIntent;
+import cn.com.vortexa.irys_onchain_bot.onchain.execute.ExecutorGuardedIntent;
+import cn.com.vortexa.irys_onchain_bot.onchain.node.NodeRegistry;
 import cn.com.vortexa.irys_onchain_bot.service.IrysOnChainService;
 import cn.com.vortexa.web3.EthWalletUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -43,14 +44,33 @@ public class IrysOnChainServiceImpl implements IrysOnChainService {
 
             return contract.getContractAddress();
         } catch (Exception e) {
-            throw new OnChainException("deploy ExecutorGuardedIntentContract error", e);
+            throw new OnChainException("deploy ExecutorGuardedIntent contract error", e);
         }
     }
 
     @Override
-    public ExecutorGuardedIntent.IntentData tryGetOnChainIntent(byte[] intentId, String intentIdStr) throws OnChainException {
+    public String deployNodeRegistryContract(String privateKey) throws OnChainException {
+        try {
+            Credentials credentials = Credentials.create(privateKey);
+
+            Web3j web3j = EthWalletUtil.getRpcWeb3j(IrysConstants.IRYS_CHAIN_INFO.getRpcUrl());
+            DynamicGasProvider gasProvider = new DynamicGasProvider(web3j, credentials.getAddress());
+            NodeRegistry contract = NodeRegistry.deploy(
+                    web3j,
+                    credentials,
+                    gasProvider
+            ).send();
+
+            return contract.getContractAddress();
+        } catch (Exception e) {
+            throw new OnChainException("deploy NodeRegistry contract error", e);
+        }
+    }
+
+    @Override
+    public ExecutorGuardedIntent.IntentData tryGetOnChainIntent(byte[] intentId, String intentIdStr, String address) throws OnChainException {
         // 1 claim intent
-        String claimTX = claimIntent(intentId, intentIdStr);
+        String claimTX = claimIntent(intentId, intentIdStr, address);
         log.info("claim intent[{}] success...txHash:[{}]", intentIdStr, claimTX);
         // 2 get intent
         ExecutorGuardedIntent.IntentData intentData = getOnChainIntent(intentId, intentIdStr);
@@ -59,10 +79,47 @@ public class IrysOnChainServiceImpl implements IrysOnChainService {
     }
 
     @Override
-    public String commitExecuteIntent(String intentIdStr) throws OnChainException {
+    public String startExecuteIntent(String intentIdStr, String address) throws OnChainException {
+        TransactionReceipt receipt;
         try {
-            log.info("try to execute intent[{}]...", intentIdStr);
-            TransactionReceipt receipt = executorGuardedIntent.executeIntent(toBytes32(intentIdStr)).send();
+            log.info("on chain start execute intent[{}]...", intentIdStr);
+            receipt = executorGuardedIntent.startExecuteIntent(toBytes32(intentIdStr), address).send();
+            if (!EthWalletUtil.waitForTransactionReceipt(
+                    IrysConstants.IRYS_CHAIN_INFO.getRpcUrl(),
+                    receipt.getTransactionHash()
+            ).isStatusOK()) {
+                throw new OnChainException("fail to execute intent...");
+            }
+            return receipt.getTransactionHash();
+        } catch (Exception e) {
+            throw new OnChainException(e);
+        }
+    }
+
+    @Override
+    public String completeExecuteIntent(String intentIdStr, String address) throws OnChainException {
+        try {
+            log.info("on chain complete execute intent[{}]...", intentIdStr);
+            TransactionReceipt receipt = executorGuardedIntent.completeExecuteIntent(
+                    toBytes32(intentIdStr), address
+            ).send();
+            if (!EthWalletUtil.waitForTransactionReceipt(
+                    IrysConstants.IRYS_CHAIN_INFO.getRpcUrl(),
+                    receipt.getTransactionHash()
+            ).isStatusOK()) {
+                throw new OnChainException("fail to execute intent...");
+            }
+            return receipt.getTransactionHash();
+        } catch (Exception e) {
+            throw new OnChainException(e);
+        }
+    }
+
+    @Override
+    public String commitError(String intentIdStr, String address) throws OnChainException {
+        try {
+            log.info("on chain commit error[{}]...", intentIdStr);
+            TransactionReceipt receipt = executorGuardedIntent.commitError(toBytes32(intentIdStr), address).send();
             if (!EthWalletUtil.waitForTransactionReceipt(
                     IrysConstants.IRYS_CHAIN_INFO.getRpcUrl(),
                     receipt.getTransactionHash()
@@ -84,10 +141,10 @@ public class IrysOnChainServiceImpl implements IrysOnChainService {
         }
     }
 
-    private String claimIntent(byte[] intentId, String intentIdStr) throws OnChainException {
+    private String claimIntent(byte[] intentId, String intentIdStr, String address) throws OnChainException {
         try {
             log.info("try to claim intent[{}]...", intentIdStr);
-            TransactionReceipt claimReceipt = executorGuardedIntent.claimIntent(intentId).send();
+            TransactionReceipt claimReceipt = executorGuardedIntent.claimIntent(intentId, address).send();
             if (!EthWalletUtil.waitForTransactionReceipt(
                     IrysConstants.IRYS_CHAIN_INFO.getRpcUrl(),
                     claimReceipt.getTransactionHash()

@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-import static cn.com.vortexa.irys_onchain_bot.constants.IrysConstants.IRYS_EXECUTE_CONTRACT_ABI;
-import static cn.com.vortexa.irys_onchain_bot.constants.IrysConstants.IRYS_EXECUTE_CONTRACT_ADDRESS;
+import static cn.com.vortexa.irys_onchain_bot.constants.IrysConstants.*;
 
 /**
  * @author helei
@@ -36,8 +35,14 @@ public class IrysController {
     @GetMapping("/contractInfo")
     public Result getContractInfo() {
         return Result.ok(Map.of(
-                "abi", vortexaBotContext.getCustomConfig().getKeyValues().get(IRYS_EXECUTE_CONTRACT_ABI),
-                "address", vortexaBotContext.getCustomConfig().getKeyValues().get(IRYS_EXECUTE_CONTRACT_ADDRESS)
+                "intent", Map.of(
+                        "abi", vortexaBotContext.getCustomConfig().getKeyValues().get(IRYS_EXECUTE_CONTRACT_ABI),
+                        "address", vortexaBotContext.getCustomConfig().getKeyValues().get(IRYS_EXECUTE_CONTRACT_ADDRESS)
+                ),
+                "node", Map.of(
+                        "abi", vortexaBotContext.getCustomConfig().getKeyValues().get(IRYS_NODE_CONTRACT_ABI),
+                        "address", vortexaBotContext.getCustomConfig().getKeyValues().get(IRYS_NODE_CONTRACT_ADDRESS)
+                )
         ));
     }
 }

@@ -125,7 +125,7 @@ public class IrysServiceImpl implements IrysService {
         );
         String sessionId = IrysBotApi.generateIrysGameSessionId(startTime);
         long wait = IrysBotApi.dynamicCalWait(gameType, score);
-        long endTime = startTime + wait;
+        long endTime = startTime + wait * 1000;
         String completeMessage = IrysBotApi.generateCompleteGameMessage(
                 gameType,
                 address,

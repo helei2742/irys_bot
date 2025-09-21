@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    jdbc-url: jdbc:mysql://localhost:3306/vortexa_script_node?allowMultiQueries=true
+    jdbc-url: jdbc:mysql://localhost:3306/irys_onchain_db?allowMultiQueries=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 123456
@@ -48,4 +48,9 @@ vortexa:
 #      keep-alive-interval-minutes: 1
     custom-config:
       key-values:
+        deployer-private-key: ""
+        proxy:
+        user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+        listen-thread-pool-size: 4
+        deploy-address: "192.168.1.8:20001"
         two-captcha-api-key: "your two captcha api key"

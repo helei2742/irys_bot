@@ -5,7 +5,7 @@ import cn.com.vortexa.common.util.CastUtil;
 import cn.com.vortexa.irys_onchain_bot.constants.IrysExecuteIntentStatus;
 import cn.com.vortexa.irys_onchain_bot.dto.PlayGameJobParams;
 import cn.com.vortexa.irys_onchain_bot.entity.IrysExecuteRecord;
-import cn.com.vortexa.irys_onchain_bot.onchain.ExecutorGuardedIntent;
+import cn.com.vortexa.irys_onchain_bot.onchain.execute.ExecutorGuardedIntent;
 import cn.com.vortexa.irys_onchain_bot.service.IIrysExecuteRecordService;
 import cn.com.vortexa.irys_onchain_bot.service.IrysOnChainService;
 import cn.com.vortexa.irys_onchain_bot.service.IrysService;
@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.utils.Numeric;
@@ -26,6 +27,8 @@ import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static cn.com.vortexa.irys_onchain_bot.constants.IrysCustomConfigKey.THREAD_POOL_SIZE_KEY;
+
 /**
  * @author helei
  * @since 2025-09-19
@@ -33,7 +36,6 @@ import java.util.concurrent.Executors;
 @Slf4j
 @Component
 public class IrysChainExecuteIntentHandler {
-    private static final String THREAD_POOL_SIZE_KEY = "listen-thread-pool-size";
 
     @Autowired
     private ExecutorGuardedIntent executorGuardedIntent;
@@ -56,6 +58,7 @@ public class IrysChainExecuteIntentHandler {
         );
     }
 
+    @Order(1)
     @EventListener(ApplicationReadyEvent.class)
     public void startListening() {
         try {
@@ -64,7 +67,12 @@ public class IrysChainExecuteIntentHandler {
             Disposable ignored = executorGuardedIntent.intentRegisteredEventFlowable(
                     DefaultBlockParameterName.LATEST,
                     DefaultBlockParameterName.LATEST
-            ).subscribe(this::handlerExecuteEvent);
+            ).subscribe(
+                    this::handlerExecuteEvent,
+                    error -> {
+                        log.error("subscribe execute intent error", error);
+                    }
+            );
         } catch (Exception e) {
             log.error("start listening execute intent error¬", e);
         }
@@ -74,19 +82,19 @@ public class IrysChainExecuteIntentHandler {
         executorService.execute(() -> {
             byte[] intentId = event.intentId;
             String intentIdStr = resolveIdStr(intentId);
+            String address = event.user;
 
             // 1. 链上获取intent data
-            log.info("receive address[{}] play intent[{}]", event.user, intentIdStr);
+            log.info("receive address[{}] play intent[{}]", address, intentIdStr);
             ExecutorGuardedIntent.IntentData intentData;
             try {
-                intentData = irysOnChainService.tryGetOnChainIntent(intentId, intentIdStr);
+                intentData = irysOnChainService.tryGetOnChainIntent(intentId, intentIdStr, address);
             } catch (Exception e) {
                 log.warn("try get intent[{}] data fail, {}", intentIdStr, e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
                 return;
             }
 
             // 2.注册start job
-            String address = event.user;
             PlayGameJobParams playGameJobParams = convertEvent2JobParams(intentIdStr, address, intentData);
 
             IrysExecuteRecord.IrysExecuteRecordBuilder recordBuilder = IrysExecuteRecord.builder()

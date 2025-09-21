@@ -5,7 +5,9 @@ import cn.com.vortexa.common.util.CastUtil;
 import cn.com.vortexa.irys_onchain_bot.constants.IrysExecuteIntentStatus;
 import cn.com.vortexa.irys_onchain_bot.dto.PlayGameJobParams;
 import cn.com.vortexa.irys_onchain_bot.entity.IrysExecuteRecord;
+import cn.com.vortexa.irys_onchain_bot.exception.OnChainException;
 import cn.com.vortexa.irys_onchain_bot.service.IIrysExecuteRecordService;
+import cn.com.vortexa.irys_onchain_bot.service.IrysOnChainService;
 import cn.com.vortexa.irys_onchain_bot.service.IrysService;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
@@ -29,6 +31,9 @@ public class IrysStartGameJob implements Job {
     private IrysService irysService;
 
     @Autowired
+    private IrysOnChainService irysOnChainService;
+
+    @Autowired
     private IIrysExecuteRecordService executeRecordService;
 
     @Override
@@ -45,18 +50,17 @@ public class IrysStartGameJob implements Job {
                     return;
                 }
                 try {
-                    if (record.getStatus() != IrysExecuteIntentStatus.WAITING) {
-                        log.warn("Ineligible start game status[{}] from address[{}], id[{}], canceled",
-                                record.getStatus(), params.getAddress(), id
-                        );
-                        update.status(IrysExecuteIntentStatus.CANCELLED);
-                        return;
-                    }
+                    // 链上提交开始
+                    String txHash = irysOnChainService.startExecuteIntent(id, params.getAddress());
+                    log.info("address[{}]-id[{}] start execute intent on chain finish, txHash:{}", params.getAddress(), id, txHash);
+
                     // 提交开始游戏
                     irysService.startPlayOnChainGame(params).get();
+
                     // 注册完成游戏任务
                     Date date = irysService.registryCompleteGameJob(params);
                     log.info("address[{}]-id[{}] start game finish, complete at[{}}", params.getAddress(), id, date);
+
                     update.status(IrysExecuteIntentStatus.RUNNING);
                 } catch (Exception e) {
                     update.status(IrysExecuteIntentStatus.ERROR);
@@ -66,7 +70,15 @@ public class IrysStartGameJob implements Job {
                             IrysExecuteIntentStatus.RUNNING,
                             em
                     ));
+
+                    // 发生错误，提交链上
                     log.error("address[{}]-id[{}] start game error, error msg[{}]", params.getAddress(), id, em);
+                    try {
+                        String s = irysOnChainService.commitError(id, params.getAddress());
+                        log.info("address[{}]-id[{}] on chain commit error finish, txHash: {}", params.getAddress(), id, s);
+                    } catch (OnChainException ex) {
+                        log.info("address[{}]-id[{}] on chain commit error fail，", params.getAddress(), id, ex);
+                    }
                 } finally {
                     executeRecordService.updateById(update.build());
                 }
