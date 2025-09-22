@@ -1,4 +1,4 @@
-package cn.com.vortexa;
+package cn.com.vortexa.irys;
 
 import cn.com.vortexa.bot_template.BotTemplateAutoConfig;
 import org.springframework.boot.SpringApplication;

@@ -1,4 +1,4 @@
-package cn.com.vortexa;
+package cn.com.vortexa.irys;
 
 import cn.com.vortexa.base.constants.HeaderKey;
 import cn.com.vortexa.base.util.log.AppendLogger;
@@ -215,10 +215,10 @@ public class IrysBotApi {
         String sessionId = startIrysGame(fullAccountContext, getGameCost(gameType), gameType);
         int score = RandomUtil.randomInt(minBase, maxBase) * multiply + base;
 
-        if (!checkScoreCanCompleteAble(gameType, score)) {
-            logger.warn("score[%s] cannot complete game[%s]...".formatted(score, gameType));
-            return;
-        }
+//        if (!checkScoreCanCompleteAble(gameType, score)) {
+//            logger.warn("score[%s] cannot complete game[%s]...".formatted(score, gameType));
+//            return;
+//        }
 
         long dynamicWait = dynamicCalWait(gameType, score);
         logger.debug("wait %s(s) to complete game[%s], score[%s]，execute on: %s".formatted(
