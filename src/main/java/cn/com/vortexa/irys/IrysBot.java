@@ -67,15 +67,9 @@ public class IrysBot extends AbstractVortexaBot {
         }
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
             Web3Wallet wallet = fullAccountContext.getWallet();
-            try {
-                logger.debug("deposit game wallet balance[%s]..".formatted(amount));
-                String txHash = botApi.depositGameBalance(wallet.getEthPrivateKey(), wallet.getEthAddress(), amount);
-                logger.info("deposit game wallet balance[%s] success, txHash:[%s]".formatted(
-                        amount, txHash
-                ));
-            } catch (Exception e) {
-                logger.error("deposit game wallet balance[%s] error, ".formatted(amount), e.getCause() == null ? e : e.getCause());
-            }
+            logger.debug("deposit game wallet balance[%s]..".formatted(amount));
+            String txHash = botApi.depositGameBalance(wallet.getEthPrivateKey(), wallet.getEthAddress(), amount);
+            logger.info("deposit game wallet balance[%s] success, txHash:[%s]".formatted(amount, txHash));
         });
     }
 
@@ -94,15 +88,10 @@ public class IrysBot extends AbstractVortexaBot {
         }
 
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
-            try {
-                logger.debug("withdraw game wallet balance[%s]..".formatted(amount));
-
-                Web3Wallet wallet = fullAccountContext.getWallet();
-                String txHash = botApi.withdrawGameBalance(wallet.getEthPrivateKey(), wallet.getEthAddress(), amount);
-                logger.info("withdraw game wallet balance[%s] success, txHash:[%s]".formatted(amount, txHash));
-            } catch (Exception e) {
-                logger.error("withdraw game wallet balance[%s] error, ".formatted(amount), e.getCause() == null ? e : e.getCause());
-            }
+            logger.debug("withdraw game wallet balance[%s]..".formatted(amount));
+            Web3Wallet wallet = fullAccountContext.getWallet();
+            String txHash = botApi.withdrawGameBalance(wallet.getEthPrivateKey(), wallet.getEthAddress(), amount);
+            logger.info("withdraw game wallet balance[%s] success, txHash:[%s]".formatted(amount, txHash));
         });
     }
 
@@ -116,14 +105,9 @@ public class IrysBot extends AbstractVortexaBot {
     public void walletIrysBalanceQuery() {
         AppendLogger logger = getBotMethodInvokeContext().getLogger();
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
-            try {
-                logger.debug("query wallet irys balance..");
-
-                BigDecimal balance = botApi.queryWalletBalance(fullAccountContext);
-                logger.info("wallet irys balance[%s]".formatted(balance.doubleValue()));
-            } catch (Exception e) {
-                logger.error("query wallet irys balance error, ", e.getCause() == null ? e : e.getCause());
-            }
+            logger.debug("query wallet irys balance..");
+            BigDecimal balance = botApi.queryWalletBalance(fullAccountContext);
+            logger.info("wallet irys balance[%s]".formatted(balance.doubleValue()));
         });
     }
 
@@ -137,13 +121,9 @@ public class IrysBot extends AbstractVortexaBot {
         AppendLogger logger = getBotMethodInvokeContext().getLogger();
 
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
-            try {
-                logger.debug("query game wallet balance..");
-                BigDecimal balance = botApi.queryGameInnerWalletBalance(fullAccountContext);
-                logger.info("game wallet balance[%s]".formatted(balance.doubleValue()));
-            } catch (Exception e) {
-                logger.error("query game wallet balance error, ", e.getCause() == null ? e : e.getCause());
-            }
+            logger.debug("query game wallet balance..");
+            BigDecimal balance = botApi.queryGameInnerWalletBalance(fullAccountContext);
+            logger.info("game wallet balance[%s]".formatted(balance.doubleValue()));
         });
     }
 
@@ -155,13 +135,8 @@ public class IrysBot extends AbstractVortexaBot {
             catalogueOrder = 1
     )
     public void snakeGame(int minBase, int maxBase, int multiply, int base) {
-        AppendLogger logger = getBotMethodInvokeContext().getLogger();
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
-            try {
-                botApi.playGame(fullAccountContext, IrysGameType.SNAKE, base, minBase, maxBase, multiply);
-            } catch (Exception e) {
-                logger.error("play snake game error, ", e.getCause() == null ? e : e.getCause());
-            }
+            botApi.playGame(fullAccountContext, IrysGameType.SNAKE, base, minBase, maxBase, multiply);
         });
     }
 
@@ -173,13 +148,8 @@ public class IrysBot extends AbstractVortexaBot {
             catalogueOrder = 2
     )
     public void asteroidsGame(int minBase, int maxBase, int multiply, int base) {
-        AppendLogger logger = getBotMethodInvokeContext().getLogger();
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
-            try {
-                botApi.playGame(fullAccountContext, IrysGameType.ASTEROIDS, base, minBase, maxBase, multiply);
-            } catch (Exception e) {
-                logger.error("play asteroids game error, ", e.getCause() == null ? e : e.getCause());
-            }
+            botApi.playGame(fullAccountContext, IrysGameType.ASTEROIDS, base, minBase, maxBase, multiply);
         });
     }
 
@@ -191,13 +161,8 @@ public class IrysBot extends AbstractVortexaBot {
             catalogueOrder = 3
     )
     public void hexshotGame(int minBase, int maxBase, int multiply, int base) {
-        AppendLogger logger = getBotMethodInvokeContext().getLogger();
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
-            try {
-                botApi.playGame(fullAccountContext, IrysGameType.HEX_SHOOTER, base, minBase, maxBase, multiply);
-            } catch (Exception e) {
-                logger.error("play hexshot game error, ", e.getCause() == null ? e : e.getCause());
-            }
+            botApi.playGame(fullAccountContext, IrysGameType.HEX_SHOOTER, base, minBase, maxBase, multiply);
         });
     }
 
@@ -209,13 +174,8 @@ public class IrysBot extends AbstractVortexaBot {
             catalogueOrder = 4
     )
     public void missileGame(int minBase, int maxBase, int multiply, int base) {
-        AppendLogger logger = getBotMethodInvokeContext().getLogger();
         forEachAccountContext((pageResult, i, fullAccountContext) -> {
-            try {
-                botApi.playGame(fullAccountContext, IrysGameType.MISSILE_COMMAND, base, minBase, maxBase, multiply);
-            } catch (Exception e) {
-                logger.error("play missile game error, ", e.getCause() == null ? e : e.getCause());
-            }
+            botApi.playGame(fullAccountContext, IrysGameType.MISSILE_COMMAND, base, minBase, maxBase, multiply);
         });
     }
 }

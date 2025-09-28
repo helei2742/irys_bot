@@ -91,7 +91,7 @@ public class IrysBotApi {
      *
      * @param accountContext    accountContext
      */
-    public void faucet(FullAccountContext accountContext) {
+    public void faucet(FullAccountContext accountContext) throws ExecutionException, InterruptedException {
         if (StrUtil.isBlank(twoCaptchaApiKey)) {
             throw new IllegalArgumentException("twoCaptchaApiKey is blank");
         }
@@ -103,30 +103,26 @@ public class IrysBotApi {
         headers.put(HeaderKey.ORIGIN, "https://irys.xyz");
         headers.put(HeaderKey.CONTENT_TYPE, "application/json");
 
-        try {
-            logger.debug("getting faucet cf token...");
-            String token = CaptchaResolver.cloudFlareResolve(
-                    accountContext.getProxy(),
-                    FAUCET_URL,
-                    FAUCET_SITE_KEY,
-                    twoCaptchaApiKey
-            ).get();
-            logger.debug("faucet cf token[%s]...".formatted(token.substring(0, 18)));
+        logger.debug("getting faucet cf token...");
+        String token = CaptchaResolver.cloudFlareResolve(
+                accountContext.getProxy(),
+                FAUCET_URL,
+                FAUCET_SITE_KEY,
+                twoCaptchaApiKey
+        ).get();
+        logger.debug("faucet cf token[%s]...".formatted(token.substring(0, 18)));
 
-            JSONObject jsonObject = RestApiClientFactory.getClient(accountContext.getProxy()).jsonRequest(
-                    FAUCET_URL,
-                    HttpMethod.POST,
-                    headers,
-                    null,
-                    new JSONObject(Map.of(
-                            "captchaToken", token,
-                            "walletAddress", accountContext.getWallet().getEthAddress()
-                    ))
-            ).get();
-            logger.debug("faucet finish, %s".formatted(jsonObject));
-        } catch (Exception e) {
-            logger.error("faucet error", e.getCause() == null ? e : e.getCause());
-        }
+        JSONObject jsonObject = RestApiClientFactory.getClient(accountContext.getProxy()).jsonRequest(
+                FAUCET_URL,
+                HttpMethod.POST,
+                headers,
+                null,
+                new JSONObject(Map.of(
+                        "captchaToken", token,
+                        "walletAddress", accountContext.getWallet().getEthAddress()
+                ))
+        ).get();
+        logger.debug("faucet finish, %s".formatted(jsonObject));
     }
 
     /**
@@ -211,7 +207,6 @@ public class IrysBotApi {
             int multiply
     ) throws BotInvokeException, InterruptedException {
         AppendLogger logger = bot.getBotMethodInvokeContext().getLogger();
-
         String sessionId = startIrysGame(fullAccountContext, getGameCost(gameType), gameType);
         int score = RandomUtil.randomInt(minBase, maxBase) * multiply + base;
 
@@ -312,7 +307,7 @@ public class IrysBotApi {
     ) throws BotInvokeException {
         AppendLogger logger = bot.getBotMethodInvokeContext().getLogger();
         logger.debug("send complete game[%s] request, score[%s]".formatted(
-               gameType, score
+                gameType, score
         ));
 
         long timestamp = System.currentTimeMillis();
@@ -443,10 +438,10 @@ public class IrysBotApi {
 
     private static long dynamicCalWait(String gameType, int score) {
         long waitSecond = switch (gameType) {
-            case IrysGameType.SNAKE -> calculatePlayTime(score, 10,1.1);
-            case IrysGameType.MISSILE_COMMAND -> calculatePlayTime(score, 100,0.5);
-            case IrysGameType.ASTEROIDS -> calculatePlayTime(score, 100,0.6);
-            case IrysGameType.HEX_SHOOTER -> calculatePlayTime(score, 100,0.7);
+            case IrysGameType.SNAKE -> calculatePlayTime(score, 10, 1.1);
+            case IrysGameType.MISSILE_COMMAND -> calculatePlayTime(score, 100, 0.5);
+            case IrysGameType.ASTEROIDS -> calculatePlayTime(score, 100, 0.6);
+            case IrysGameType.HEX_SHOOTER -> calculatePlayTime(score, 100, 0.7);
             default -> throw new IllegalArgumentException("unknown gameType: " + gameType);
         };
         if (waitSecond > 60 * 10 && waitSecond < 60 * 20) {
